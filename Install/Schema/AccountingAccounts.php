@@ -68,10 +68,11 @@ class AccountingAccounts
                     ]
                 ),
                 new Column(
-                    'reconciled',
+                    'last_reconciled_date',
                     [
-                        'type'          => Column::TYPE_BOOLEAN,
-                        'notNull'       => true,
+                        'type'          => Column::TYPE_VARCHAR,
+                        'size'          => 15,
+                        'notNull'       => false,
                     ]
                 ),
                 new Column(//Last transaction balance when was reconciled. Used as starting balance for next reconcile.

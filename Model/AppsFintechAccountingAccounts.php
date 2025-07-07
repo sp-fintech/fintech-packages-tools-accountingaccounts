@@ -20,7 +20,7 @@ class AppsFintechAccountingAccounts extends BaseModel
 
     public $balance;
 
-    public $reconciled;
+    public $last_reconciled_date;
 
     public $last_reconciled_balance;
 }
