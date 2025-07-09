@@ -68,9 +68,9 @@ class AccountingAccounts extends BasePackage
         $this->addResponse('Error', 1);
     }
 
-    public function getAvailableAccountTypes()
+    public function getAvailableAccountTypes($getCrBalanceTypes = false)
     {
-        return
+        $types =
             [
                 'placeholder'       => [
                     'id'            => 'placeholder',
@@ -78,6 +78,8 @@ class AccountingAccounts extends BasePackage
                     'data'          =>
                         [
                             'description'   => 'Placeholder accounts are only to create account hierarchy. They cannot have any transactions in them.',
+                            'placeholder'   => true,
+                            'cr_balance'    => '',
                         ]
                 ],
                 'payable'           => [
@@ -86,6 +88,8 @@ class AccountingAccounts extends BasePackage
                     'data'          =>
                         [
                             'description'   => 'Accounts Payable are used by businesses to record amounts that must be paid. Example: The business has bought something, but the business has not paid the bill until later.',
+                            'placeholder'   => false,
+                            'cr_balance'    => 'positive',
                         ]
                 ],
                 'receivable'        => [
@@ -94,6 +98,8 @@ class AccountingAccounts extends BasePackage
                     'data'          =>
                         [
                             'description'   => 'Accounts Receivable records amounts for which money has not yet been received. Example: A business has sold something and issued a bill, but the client has not payed until later.',
+                            'placeholder'   => false,
+                            'cr_balance'    => 'negative',
                         ]
                 ],
                 'asset'             => [
@@ -102,6 +108,8 @@ class AccountingAccounts extends BasePackage
                     'data'          =>
                         [
                             'description'   => 'Asset accounts are used for tracking things that are of value and can be used or sold to pay debts. (Normally a placeholder account)',
+                            'placeholder'   => true,
+                            'cr_balance'    => '',
                         ]
                 ],
                 'bank'              => [
@@ -110,6 +118,8 @@ class AccountingAccounts extends BasePackage
                     'data'          =>
                         [
                             'description'   => 'The Bank account type denotes savings or checking accounts held at a bank or other financial institution. Some of these accounts may bear interest. This is also the appropriate account type for check (debit) cards, which directly withdraw payments from a checking account.',
+                            'placeholder'   => false,
+                            'cr_balance'    => 'negative',
                         ]
                 ],
                 'cash'              => [
@@ -118,6 +128,8 @@ class AccountingAccounts extends BasePackage
                     'data'          =>
                         [
                             'description'   => 'The Cash account type is used to denote the cash that you store in your wallet, shoe box, piggyback, or mattress.',
+                            'placeholder'   => false,
+                            'cr_balance'    => 'negative',
                         ]
                 ],
                 'credit'            => [
@@ -126,6 +138,8 @@ class AccountingAccounts extends BasePackage
                     'data'          =>
                         [
                             'description'   => 'The Credit Card account type is used to denote credit card accounts, both for cards that allow floating lines of credit (e.g. VISA, MasterCard, or Discover) and with cards that do not permit continuing balances (e.g. American Express)',
+                            'placeholder'   => false,
+                            'cr_balance'    => 'positive',
                         ]
                 ],
                 'equity'            => [
@@ -134,6 +148,8 @@ class AccountingAccounts extends BasePackage
                     'data'          =>
                         [
                             'description'   => 'Equity accounts are used to store the opening balances when you first start a new book.',
+                            'placeholder'   => true,
+                            'cr_balance'    => 'positive',
                         ]
                 ],
                 'expense'           => [
@@ -142,6 +158,8 @@ class AccountingAccounts extends BasePackage
                     'data'          =>
                         [
                             'description'   => 'Any expense such as food, clothing, taxes, etc.',
+                            'placeholder'   => true,
+                            'cr_balance'    => 'negative',
                         ]
                 ],
                 'income'           => [
@@ -150,6 +168,8 @@ class AccountingAccounts extends BasePackage
                     'data'          =>
                         [
                             'description'   => 'Any income received from sources such as salary, interest, dividends, etc.',
+                            'placeholder'   => true,
+                            'cr_balance'    => 'positive',
                         ]
                 ],
                 'liability'         => [
@@ -158,6 +178,8 @@ class AccountingAccounts extends BasePackage
                     'data'          =>
                         [
                             'description'   => 'Liability accounts are used for tracking debts or financial obligations. (Normally a placeholder account)',
+                            'placeholder'   => true,
+                            'cr_balance'    => 'positive',
                         ]
                 ],
                 'mutual'            => [
@@ -166,6 +188,8 @@ class AccountingAccounts extends BasePackage
                     'data'          =>
                         [
                             'description'   => 'A professionally managed portfolio of stocks and bonds or other investments divided up into shares.',
+                            'placeholder'   => true,
+                            'cr_balance'    => 'negative',
                         ]
                 ],
                 'stock'             => [
@@ -174,8 +198,53 @@ class AccountingAccounts extends BasePackage
                     'data'          =>
                         [
                             'description'   => 'A share of ownership in a corporation, which entitles its owner to all the risks and rewards that go with it.',
+                            'placeholder'   => true,
+                            'cr_balance'    => 'negative',
                         ]
                 ]
             ];
+
+        if ($getCrBalanceTypes) {
+            return $this->getCrBalanceTypes($types);
+        }
+
+        return $types;
+    }
+
+    protected function getCrBalanceTypes($types)
+    {
+        $typesArr = [];
+
+        foreach ($types as $typeKey => $type) {
+            if ($type['data']['cr_balance'] !== '') {
+                $typesArr[$typeKey] = $type['data']['cr_balance'];
+            }
+        }
+
+        return $typesArr;
+    }
+
+    public function getAccountingAccountByUUID(string $UUID)
+    {
+        if ($this->config->databasetype === 'db') {
+            $searchUUID = $this->getByParams(
+                [
+                    'conditions'    => 'uuid = :uuid:',
+                    'bind'          => [
+                        'uuid'     => $UUID
+                    ]
+                ]
+            );
+        } else {
+            $searchUUID = $this->getByParams(['conditions' => ['uuid', '=', $UUID]]);
+        }
+
+        if ($searchUUID && isset($searchUUID[0])) {
+            $this->addResponse('Ok', 0, ['account' => $searchUUID[0]]);
+
+            return $searchUUID[0];
+        }
+
+        return false;
     }
 }
